@@ -35,7 +35,7 @@ const standard = async (promptContent) => {
 
     const response = await openai.chat.completions.create({
     //   model: "gpt-4", // Switch to different models if necessary
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o",
       messages: messages,
     });
     console.log("------\n", response.choices[0].message.content);

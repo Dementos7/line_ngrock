@@ -2,7 +2,13 @@
 
 const line = require('@line/bot-sdk');
 const express = require('express');
-require("dotenv").config();
+const dotenv = require('dotenv');
+const db = require("./src/db");
+const { handleEvent } = require("./src/handler/eventHandler");
+dotenv.config();
+db.connectToDatabase();
+
+const port = process.env.port;
 const config = {
   port : process.env.port,
   channelAccessToken: process.env.channelAccessToken,
@@ -10,9 +16,6 @@ const config = {
 }
 
 
-// create LINE SDK client
-const client = new line.messagingApi.MessagingApiClient(config);
-const { service } = require("./src/service");
 const app = express();
 
 // webhook callback
@@ -33,92 +36,6 @@ app.post('/webhook', line.middleware(config), (req, res) => {
     });
 });
 
-// simple reply function
-const replyText = (replyToken, text, quoteToken) => {
-  return client.replyMessage({
-    replyToken,
-    messages: [{
-      type: 'text',
-      text,
-      quoteToken
-    }]
-  });
-};
-
-// callback function to handle a single event
-function handleEvent(event) {
-  switch (event.type) {
-    case 'message':
-      const message = event.message;
-      console.log(event.replyToken);
-      switch (message.type) {
-        case 'text':
-          return handleText(message, event.replyToken);
-        case 'image':
-          return handleImage(message, event.replyToken);
-        case 'video':
-          return handleVideo(message, event.replyToken);
-        case 'audio':
-          return handleAudio(message, event.replyToken);
-        case 'location':
-          return handleLocation(message, event.replyToken);
-        case 'sticker':
-          return handleSticker(message, event.replyToken);
-        default:
-          throw new Error(`Unknown message: ${JSON.stringify(message)}`);
-      }
-
-    case 'follow':
-      return replyText(event.replyToken, 'Got followed event');
-
-    case 'unfollow':
-      return console.log(`Unfollowed this bot: ${JSON.stringify(event)}`);
-
-    case 'join':
-      return replyText(event.replyToken, `Joined ${event.source.type}`);
-
-    case 'leave':
-      return console.log(`Left: ${JSON.stringify(event)}`);
-
-    case 'postback':
-      let data = event.postback.data;
-      return replyText(event.replyToken, `Got postback: ${data}`);
-
-    case 'beacon':
-      const dm = `${Buffer.from(event.beacon.dm || '', 'hex').toString('utf8')}`;
-      return replyText(event.replyToken, `${event.beacon.type} beacon hwid : ${event.beacon.hwid} with device message = ${dm}`);
-
-    default:
-      throw new Error(`Unknown event: ${JSON.stringify(event)}`);
-  }
-}
-
-async function handleText(message, replyToken) {
-  const response = await service(message);
-  return replyText(replyToken, response, message.quoteToken);
-}
-
-function handleImage(message, replyToken) {
-  return replyText(replyToken, 'Got Image');
-}
-
-function handleVideo(message, replyToken) {
-  return replyText(replyToken, 'Got Video');
-}
-
-function handleAudio(message, replyToken) {
-  return replyText(replyToken, 'Got Audio');
-}
-
-function handleLocation(message, replyToken) {
-  return replyText(replyToken, 'Got Location');
-}
-
-function handleSticker(message, replyToken) {
-  return replyText(replyToken, 'Got Sticker');
-}
-
-const port = process.env.port;
 app.listen(port, () => {
   console.log(`listening on ${port}`);
 });
