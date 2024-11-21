@@ -4,13 +4,13 @@ const line = require('@line/bot-sdk');
 const express = require('express');
 const dotenv = require('dotenv');
 const db = require("./src/db");
-const { handleEvent } = require("./src/handler/eventHandler");
 dotenv.config();
+const { handleEvent } = require("./src/handler/eventHandler");
 db.connectToDatabase();
 
 const port = process.env.port;
 const config = {
-  port : process.env.port,
+  port: process.env.port,
   channelAccessToken: process.env.channelAccessToken,
   channelSecret: process.env.channelSecret
 }
@@ -26,7 +26,6 @@ app.post('/webhook', line.middleware(config), (req, res) => {
   }
   // handle events separately
   Promise.all(req.body.events.map(event => {
-    console.log('event', event);
     return handleEvent(event);
   }))
     .then(() => res.end())

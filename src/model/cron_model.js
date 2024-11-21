@@ -16,6 +16,6 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-const User = mongoose.model('User', userSchema);
+const Cron = mongoose.model('Cron', userSchema);
 
-module.exports = User;
+module.exports = Cron;
